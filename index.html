@@ -2,20 +2,160 @@
 <html>
 <head>
 	<meta  http-equiv="Content-Type" content="text/html;charset=utf-8">
-	<title>Hello World!</title>
-	<style type="text/css">
-		h1{
-			font-size: 12px;
-			color: #ff7908;
-			text-align: center;
-		}
-	</style>
-</head>						
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+  <link rel="stylesheet" type="text/css" href="css/common.css">
+  <link rel="stylesheet" type="text/css" href="css/markdown.css">
+  <title>喵喵喵？？？</title>
+</head>
 <body>
-	<h1>Hello World!</h1>
-		<div>第一天结束，没记住几个标签</div>
-			<div>sublime快捷键</div>
-		<div>代码也没写几行</div>
-		<img src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1497530401163&di=f4ec64ad1df61513df81203f163a9cf0&imgtype=0&src=http%3A%2F%2Fimg.mp.itc.cn%2Fupload%2F20160816%2Fdb6ca2c9bfaf4f00ae54df64f978777a_th.jpg">
-	</body>
-	</html>
+  <header>
+    <div class="site-meta">
+      <span class="site-title">这也能叫做一个博客？？</span>
+    </div>
+  </header>
+  <article class="markdown-body"><h2 id="_1"><a name="user-content-_1" href="#_1" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>线程</h2>
+    <h3 id="_2"><a name="user-content-_2" href="#_2" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>线程与进程</h3>
+    <blockquote>
+      <p><a href="http://baike.baidu.com/link?url=bXedHBZYPtoeJGBRSPuzTxftAq9Q9Nwwsr6D8Op6aOELtr4WjMK61KOeiyh-AXUAoh4rG_stfZVQcz0BUGTVK2DXGX_8rOaK2X5eZGQztFS">进程</a>：进程（Process）是计算机中的程序关于某数据集合上的一次运行活动，是系统进行资源分配和调度的基本单位，是操作系统结构的基础。（百度百科）</p>
+      <p><a href="http://baike.baidu.com/link?url=NUshXILA2xcHY9D45azXlDEqbvd3y2J9pf4VxNXK34VPg8EQX2CtpuKB59BpXGzEFmjqd4P2A9Ir_rVusV1uSGBmWkbL1UwEoVbNQgTWewW">线程</a>:程序执行的最小单元。线程是进程中的一个实体，是被系统独立调度和分派的基本单位，线程自己不拥有系统资源，只拥有一点儿在运行中必不可少的资源，但它可与同属一个进程的其它线程共享进程所拥有的全部资源。（百度百科）</p>
+    </blockquote>
+    <h3 id="_3"><a name="user-content-_3" href="#_3" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>线程的生命周期（状态）</h3>
+    <p><img alt="线程的生命周期" src="http://images.cnitblog.com/blog/325852/201302/16190414-db7bf28f83034ca0b38df81bd97daccf.png" /></p>
+    <h4 id="new"><a name="user-content-new" href="#new" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>NEW</h4>
+    <h5 id="_4"><a name="user-content-_4" href="#_4" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>创建线程的两种方式</h5>
+    <ol>
+      <li>
+        <p>继承Thread类,重写run方法</p>
+        <pre><code>//创建TestThread类，继承Thread
+
+          class TestThread extends Thread {
+          @Override
+          public void run() {}
+        }
+
+        //创建TestThread
+        TestThread thread = new TestThread();
+      </code></pre>
+    </li>
+    <li>
+      <p>实现Runnable</p>
+      <pre><code>//创建TestRunnable类，实现Runnable的run方法
+        class TestRunnable implements Runnable{
+        @Override
+        public void run() {}
+      }
+
+      //通过Thread的另一个构造方法创建线程
+      TestRunnable runnable = new Runnable();
+      Thread thread = new Thread(runnable);
+    </code></pre>
+  </li>
+</ol>
+<p>创建完成后调用getState()方法，打印线程的状态。</p>
+<pre><code>   System.out.println(thread.getState());
+</code></pre>
+<p>结果为NEW，表示线程已经创建但是还未start</p>
+<p>对比：由于JAVA只能单继承，所以实现2更有优势。同时，实现2能便于多个线程对同一目标（target）进行操作。所以接下来的演示都以实现2进行演示。</p>
+<h4 id="runnable"><a name="user-content-runnable" href="#runnable" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>RUNNABLE</h4>
+<h5 id="runstart"><a name="user-content-runstart" href="#runstart" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>run()与start()的区别</h5>
+<ul>
+  <li>重写TestRunnable中的run方法，作用为输出当前线程的名字与状态<pre><code>public void run() {
+    System.out.println(Thread.currentThread().getName() + "-----&gt;" + Thread.currentThread().getState());
+  }
+</code></pre>
+</li>
+</ul>
+<p>调用thread.run()   输出main-----&gt;RUNNABLE</p>
+<p>调用thread.start()   输出Thread-0-----&gt;RUNNABLE</p>
+<p>可见start方法才是真正的开启线程，run方式只是普通的方法调用。</p>
+<h5 id="_5"><a name="user-content-_5" href="#_5" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>线程调度是随机的</h5>
+<ul>
+  <li>场景描述：小明和小王进行100米赛跑，观察比赛过程<pre><code>  private static class RaceRunnable implements Runnable {
+    @Override
+    public void run() {
+    System.out.println(Thread.currentThread().getName() + "起跑了");
+    for (int i = 1; i &lt;= 100; i++) {
+    System.out.println(Thread.currentThread().getName() + "已经跑到第" + i + "米");
+  }
+  System.out.println(Thread.currentThread().getName() + "已经到达终点");
+}
+}
+
+//在main函数中，创建小明与小王线程，并启动线程
+
+RaceRunnable mingRunnable = new RaceRunnable();
+Thread mingThread = new Thread(mingRunnable, "小明");
+
+RaceRunnable wangRunnable = new RaceRunnable();
+Thread wangThread = new Thread(wangRunnable, "小王");
+
+mingThread.start();
+wangThread.start();
+</code></pre>
+</li>
+</ul>
+<p>观察控制台输出可以发现输出是随机的</p>
+<h5 id="_6"><a name="user-content-_6" href="#_6" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>线程优先级</h5>
+<ul>
+  <li>优先级范围为1~10，默认为5，内置有MIN_PRIORITY（1），NORM_PRIORITY（5），MAX_PRIORITY（10）。需要在start前设置。</li>
+</ul>
+<h5 id="_7"><a name="user-content-_7" href="#_7" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>其他常用方法</h5>
+<ul>
+  <li>sleep(int ms),当前线程睡眠。</li>
+  <li>yield()，让出当前cpu。</li>
+  <li>join(),等待当前线程执行完毕后再向下执行。</li>
+</ul>
+<h4 id="terminated"><a name="user-content-terminated" href="#terminated" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>TERMINATED</h4>
+<h5 id="_8"><a name="user-content-_8" href="#_8" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>如何正确的停止线程</h5>
+<ol>
+  <li>
+    <p>正常运行结束退出:如上runnable代码，输出完毕即代表代码运行完毕，线程正常停止。</p>
+    <pre><code>//我们在线程开始后休眠1000ms，保证test线程执行完毕
+      TestRunnable testRunnable = new TestRunnable();
+      Thread thread = new Thread(testRunnable);
+      thread.start();
+
+      try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+    e.printStackTrace();
+  }
+  System.out.println(thread.getName() + "-----&gt;" + thread.getState());
+</code></pre>
+<p>观察到控制台输出为 </p>
+<blockquote>
+  <p>Thread-0-----&gt;RUNNABLE</p>
+  <p>Thread-0-----&gt;TERMINATED</p>
+</blockquote>
+</li>
+<li>
+  <p>通过外部条件改变</p>
+  <ul>
+    <li>使用<del>Thread.stop()</del> </li>
+    <li>
+      <p>使用中断标志<br />
+        interrupt:只是设置中断标志，不进行中断操作</p>
+        <p>interrupted：判断中断状态，并清除中断标志</p>
+        <p>isInterrupted：判断中断状态，不清除中断标志<br />
+          * 使用退出标志</p>
+        </li>
+      </ul>
+    </li>
+  </ol>
+  <h2 id="_9"><a name="user-content-_9" href="#_9" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>多线程的应用（）</h2>
+  <h3 id="_10"><a name="user-content-_10" href="#_10" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>单例模式的实现</h3>
+  <blockquote>
+    <p>使用synchronized关键字进行线程同步</p>
+    <p>同步方法与同步代码块 </p>
+  </blockquote>
+  <h3 id="-"><a name="user-content--" href="#-" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>生产者-消费者模型</h3>
+  <blockquote>
+    <p>wait notifyAll</p>
+  </blockquote>
+  <h3 id="_11"><a name="user-content-_11" href="#_11" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>造成死锁的原因</h3></article>
+
+  <footer>
+
+  </footer>
+</body>
+</html>
