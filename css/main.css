@@ -1,6 +1,21 @@
+html{
+
+}
+
+body {
+  max-width: 980px;
+  border: 1px solid #ddd;
+  outline: 1300px solid #fff;
+    margin: 0 auto;
+}
+
 h1{
  font-size: 18px;
  color: #FFF;
 }
 
-
+footer,
+header{
+  display: block;
+  text-align: center;
+}

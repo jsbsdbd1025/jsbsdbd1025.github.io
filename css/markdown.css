@@ -1,13 +1,7 @@
-body {
-  max-width: 980px;
-  border: 1px solid #ddd;
-  outline: 1300px solid #fff;
-  margin: 16px auto;
-}
-
 body .markdown-body
 {
   padding: 45px;
+  text-align: left;
 }
 
 @font-face {
@@ -766,35 +760,35 @@ body .markdown-body
     transparent 52%, rgba(255, 255, 255, .4) 52%,
     rgba(255, 255, 255, .4) 77%,
     transparent 77%, transparent
-  );
+    );
   background-image: -moz-linear-gradient(
     135deg,
     rgba(255, 255, 255, .4) 27%, transparent 27%,
     transparent 52%, rgba(255, 255, 255, .4) 52%,
     rgba(255, 255, 255, .4) 77%, transparent 77%,
     transparent
-  );
+    );
   background-image: -ms-linear-gradient(
     135deg,
     rgba(255, 255, 255, .4) 27%, transparent 27%,
     transparent 52%, rgba(255, 255, 255, .4) 52%,
     rgba(255, 255, 255, .4) 77%, transparent 77%,
     transparent
-  );
+    );
   background-image: -o-linear-gradient(
     135deg,
     rgba(255, 255, 255, .4) 27%, transparent 27%,
     transparent 52%, rgba(255, 255, 255, .4) 52%,
     rgba(255, 255, 255, .4) 77%, transparent 77%,
     transparent
-  );
+    );
   background-image: linear-gradient(
     135deg,
     rgba(255, 255, 255, .4) 27%, transparent 27%,
     transparent 52%, rgba(255, 255, 255, .4) 52%,
     rgba(255, 255, 255, .4) 77%, transparent 77%,
     transparent
-  );
+    );
 }
 
 .markdown-body .progress-100plus .progress-bar {
@@ -859,8 +853,8 @@ body .markdown-body
 
 .markdown-body .gloss .progress-bar {
   box-shadow:
-    inset 0 4px 12px rgba(255, 255, 255, .7),
-    inset 0 -12px 0 rgba(0, 0, 0, .05);
+  inset 0 4px 12px rgba(255, 255, 255, .7),
+  inset 0 -12px 0 rgba(0, 0, 0, .05);
 }
 
 /* Multimarkdown Critic Blocks */
