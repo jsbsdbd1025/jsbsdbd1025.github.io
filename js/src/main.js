@@ -6,9 +6,11 @@ function readThread(type){
   }
 }
 
-function display(){
-  var element = document.getElementById('btn1');
-  element.style.color="red";
-  element.style.display = "none";
-  element.innerHTML = "变大";
+
+function openByIndex(index){
+  if (index==1) {
+    var win = window.open('thread.html','_self')
+  }else if(index==2){
+    var win = window.open('context.html','_self')
+  }
 }
