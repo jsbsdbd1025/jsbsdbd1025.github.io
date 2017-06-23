@@ -1,0 +1,15 @@
+document.writeln("<!DOCTYPE html>");
+document.writeln("<html>");
+document.writeln("<head>");
+document.writeln("    <meta  http-equiv=\'Content-Type\' content=\'text/html;charset=utf-8\'>");
+document.writeln("    <link rel=\'stylesheet\' type=\'text/css\' href=\'../css/main.css\'>");
+document.writeln("    <link rel=\'stylesheet\' type=\'text/css\' href=\'../css/common.css\'>");
+document.writeln("    <title>喵喵喵？？？</title>");
+document.writeln("</head>");
+document.writeln("<body>");
+document.writeln("   <div class=\'site-meta\'>");
+document.writeln("    <p class=\'site-title\'>这也能叫做一个博客？？</p>");
+document.writeln("</div>");
+document.writeln("</body>");
+document.writeln("</html>");
+document.writeln("");
