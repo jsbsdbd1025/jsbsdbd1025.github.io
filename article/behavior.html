@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta  http-equiv="Content-Type" content="text/html;charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+  <link rel="stylesheet" type="text/css" href="css/common.css">
+  <link rel="stylesheet" type="text/css" href="css/markdown.css">
+  <script type="text/javascript" src="../js/src/header.js"></script>
+  <title>喵喵喵？？？</title>
+</head>
+<body>
+  <article class="markdown-body"><h1 id="android-behavior"><a name="user-content-android-behavior" href="#android-behavior" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Android源码分析（一）----------behavior</h1>
+    <h4 id="_1"><a name="user-content-_1" href="#_1" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>效果演示</h4>
+    <p><img src="http://upload-images.jianshu.io/upload_images/2950440-2981df671b0ba8ab.gif?imageMogr2/auto-orient/strip"/></p>
+    <h4 id="_2"><a name="user-content-_2" href="#_2" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>效果分解</h4>
+    <p>动画效果无非的改变View的坐标以及scale。<br />
+      可以简单将效果分解为以下步骤</p>
+      <blockquote>
+        <p>通过监听滑动状态，获取AppBarLayout的缩放比例，改变View（如gif中的ImageView）的scale</p>
+      </blockquote>
+      <p><img src="http://upload-images.jianshu.io/upload_images/2950440-62f26f6776df0c5b.gif?imageMogr2/auto-orient/strip" ></p>
+      <blockquote>
+        <p>通过监听滑动状态，获取AppBarLayout的缩放比例，改变View的定位</p>
+      </blockquote>
+      <p><img src="http://upload-images.jianshu.io/upload_images/2950440-eacd647ceabd3aa9.gif?imageMogr2/auto-orient/strip"/></p>
+      <h4 id="behavior"><a name="user-content-behavior" href="#behavior" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Behavior源码分析</h4>
+      <p>Behavior是CoordinatorLayout类的一个静态抽象内部类。在源码的注释中，我们可以知道Behavior是用来协调CoordinatorLayout的子View的交互，包括拖拽等手势操作。</p>
+      <h5 id="behavior_1"><a name="user-content-behavior_1" href="#behavior_1" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Behavior的类定义</h5>
+      <pre><code>public static abstract class Behavior&lt;V extends View&gt; {
+
+        /**
+        * 默认构造方法
+        */
+        public Behavior() {
+      }
+
+      /**
+      * 自定义Behavior必须实现
+      *
+      * @param context
+      * @param attrs
+      */
+      public Behavior(Context context, AttributeSet attrs) {
+    }
+
+    /**
+    * 绑定layoutParams
+    */
+    public void onAttachedToLayoutParams(@NonNull CoordinatorLayout.LayoutParams params) {
+  }
+
+  /**
+  * 解绑layoutParams
+  */
+  public void onDetachedFromLayoutParams() {
+}
+
+.....
+
+public boolean layoutDependsOn(CoordinatorLayout parent, V child, View dependency) {
+return false;
+}
+
+.....
+
+public boolean onDependentViewChanged(CoordinatorLayout parent, V child, View dependency) {
+return false;
+}
+
+.....
+
+}
+</code></pre>
+<h6 id="_3"><a name="user-content-_3" href="#_3" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>划一下重点</h6>
+<ol>
+  <li>Behavior可以指定一个View，在上面的例子中就是ImageView，认为是依赖其他控件变化的View</li>
+  <li>在CoordinatorLayout中，LayoutParams 继承于 ViewGroup.MarginLayoutParams，在之基础上加上了Behavior和Anchor（参照物）</li>
+  <li>下面两个方法可以认为是实现所需效果的重点，决定被依赖的控件类型，以及在被依赖控件Change时，ImageView所要进行的改变。</li>
+</ol>
+<h5 id="behavior_2"><a name="user-content-behavior_2" href="#behavior_2" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Behavior初始化</h5>
+<p>在CoordinatorLayout.LayoutParams的构造方法中，我们可以找到Behavior的初始化过程</p>
+<pre><code>mBehaviorResolved = a.hasValue(
+  R.styleable.CoordinatorLayout_Layout_layout_behavior);
+  if (mBehaviorResolved) {
+  mBehavior = parseBehavior(context, attrs, a.getString(
+  R.styleable.CoordinatorLayout_Layout_layout_behavior));
+}
+</code></pre>
+<p>判断是否存在Behavior，如果存在就调用parseBehavior方法对Behavior进行初始化。</p>
+<p>现在我们再来看parseBehavior方法。</p>
+<pre><code>static Behavior parseBehavior(Context context, AttributeSet attrs, String name) {
+
+  .....
+
+  try {
+  Map&lt;String, Constructor&lt;Behavior&gt;&gt; constructors = sConstructors.get();
+  if (constructors == null) {
+  constructors = new HashMap&lt;&gt;();
+  sConstructors.set(constructors);
+}
+Constructor&lt;Behavior&gt; c = constructors.get(fullName);
+if (c == null) {
+final Class&lt;Behavior&gt; clazz = (Class&lt;Behavior&gt;) Class.forName(fullName, true,
+context.getClassLoader());
+c = clazz.getConstructor(CONSTRUCTOR_PARAMS);
+c.setAccessible(true);
+constructors.put(fullName, c);
+}
+return c.newInstance(context, attrs);
+} catch (Exception e) {
+throw new RuntimeException("Could not inflate Behavior subclass " + fullName, e);
+}
+}
+</code></pre>
+<p>非常标准的用反射的方法初始化对象的代码。<br />
+  我们可以发现使用了带 Context context, AttributeSet attrs  两个参数的构造方法。<br />
+  所以在自定义Behavior时，我们必须要对该构造方法进行重写。</p>
+  <h5 id="ondependentviewchanged"><a name="user-content-ondependentviewchanged" href="#ondependentviewchanged" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>onDependentViewChanged的调用过程</h5>
+  <p>在CoordinatorLayout中定义了三种事件类型</p>
+  <pre><code>static final int EVENT_PRE_DRAW = 0;
+    static final int EVENT_NESTED_SCROLL = 1;
+    static final int EVENT_VIEW_REMOVED = 2;
+  </code></pre>
+  <p>在不同的状态改变时调用onChildViewsChanged方法</p>
+  <pre><code>final void onChildViewsChanged(@DispatchChangeEvent final int type) {
+
+    final int childCount = mDependencySortedChildren.size();
+
+    .....
+
+    // Update any behavior-dependent views for the change
+    for (int j = i + 1; j &lt; childCount; j++) {
+    final View checkChild = mDependencySortedChildren.get(j);
+    final LayoutParams checkLp = (LayoutParams) checkChild.getLayoutParams();
+    final Behavior b = checkLp.getBehavior();
+
+    if (b != null &amp;&amp; b.layoutDependsOn(this, checkChild, child)) {
+
+    .....
+
+    final boolean handled;
+    switch (type) {
+    case EVENT_VIEW_REMOVED:
+    // EVENT_VIEW_REMOVED means that we need to dispatch
+    // onDependentViewRemoved() instead
+    b.onDependentViewRemoved(this, checkChild, child);
+    handled = true;
+    break;
+    default:
+    // Otherwise we dispatch onDependentViewChanged()
+    handled = b.onDependentViewChanged(this, checkChild, child);
+    break;
+  }
+
+  if (type == EVENT_NESTED_SCROLL) {
+  // If this is from a nested scroll, set the flag so that we may skip
+  // any resulting onPreDraw dispatch (if needed)
+  checkLp.setChangedAfterNestedScroll(handled);
+}
+}
+}
+}
+}
+</code></pre>
+<p>略去部分代码后，可以清楚的看到behavior的调用过程<br />
+  1. 循环CoordinatorLayout下childView<br />
+  2. 判断View是否有Behavior以及View是否是该Behavior所依赖的视图<br />
+  3. 若条件成立，非特殊情况（默认）下调用onDependentViewChanged。</p>
+  <p>再一个是通过AppBarLayout中的方法实现调用，获取到在xml中设置的layout_anchor参照物，这也是实现需求的一个关键。</p>
+  <pre><code>public void dispatchDependentViewsChanged(View view) {
+    final List&lt;View&gt; dependents = mChildDag.getIncomingEdges(view);
+    if (dependents != null &amp;&amp; !dependents.isEmpty()) {
+    for (int i = 0; i &lt; dependents.size(); i++) {
+    final View child = dependents.get(i);
+    CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams)
+    child.getLayoutParams();
+    CoordinatorLayout.Behavior b = lp.getBehavior();
+    if (b != null) {
+    b.onDependentViewChanged(this, child, view);
+  }
+}
+}
+}
+</code></pre>
+<h4 id="behavior_3"><a name="user-content-behavior_3" href="#behavior_3" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>自定义Behavior的实现</h4>
+<pre><code>public AvatarBehavior(Context context, AttributeSet attrs) {
+  super(context, attrs);
+  mContext = context;
+
+  if (attrs != null) {
+  TypedArray a = mContext.obtainStyledAttributes(attrs, R.styleable.AvatarImageBehavior);
+
+  .....//自定义参数，如定位，尺寸等
+
+  a.recycle();
+}
+}
+
+@Override
+public boolean layoutDependsOn(CoordinatorLayout parent, CircleImageView child, View dependency) {
+return dependency instanceof AppBarLayout;
+}
+
+
+@Override
+public boolean onDependentViewChanged(CoordinatorLayout parent, CircleImageView child, View dependency) {
+
+if (dependency instanceof AppBarLayout) {
+//初始化参数
+init(child, dependency);
+//计算缩放比
+mPercent = calcPercent(dependency);
+//计算并设置View的Y坐标
+setViewY(child, mOriginalY, mFinalY - mScaleSize, mPercent);
+//计算并设置View的尺寸
+scaleView(child, mOriginalSize, mFinalSize, mPercent);
+}
+}
+</code></pre>
+<h4 id="_4"><a name="user-content-_4" href="#_4" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>总结</h4>
+<p>实现效果的过程中，踩了非常多的坑，主要是Android版本不同导致的兼容问题，现总结如下</p>
+<ol>
+  <li>在上述代码中，没有对setViewY方法进行具体的实现，因为在不用的Android版本下，statusbar的高度不同，在计算Y的值时需要加上状态栏的高度，并且在dimens的不用包下设置不同的size，普通的为0dp,v21中是25dp,v23中是24dp。</li>
+  <li>在6.0及以上系统中，当AppBarLayout完全折叠是，ToolBar会遮盖ImageView，所以需要在CollapsingToolbarLayout中addView来保证完全折叠状态下，头像的展示。</li>
+  <li>上文也有提到，调用onDependentViewChanged方法有两种路径，这也是在该方法中仍要进行类型判断的原因。结合总结的第二点实现6.0以上系统的完整展示过程。</li>
+</ol>
+<h4 id="_5"><a name="user-content-_5" href="#_5" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>参考</h4>
+<p>本文在源码之外的内容主要参考了<a href="https://github.com/GavinAndre/MaterialDesignFeatures">MaterialDesignFeatures</a>项目，在实现上有疑惑的请移步gayhub参考。</p></article>
+
+<footer>
+
+</footer>
+</body>
+</html>
